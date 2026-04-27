@@ -22,6 +22,11 @@ function TaskList({ tasks, onEdit, onDelete }) {
               </span>
             </div>
             <p className="task-desc">{task.description || "—"}</p>
+            {task.due_date && (
+              <p className="muted" style={{ marginTop: 8 }}>
+                Date: <strong>{task.due_date}</strong>
+              </p>
+            )}
           </div>
 
           <div className="actions">

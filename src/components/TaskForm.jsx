@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 function TaskForm({ onSubmit, editingTask, onCancelEdit }) {
+  const todayISO = new Date().toISOString().slice(0, 10);
   const [formData, setFormData] = useState(() =>
     editingTask
       ? editingTask
@@ -8,6 +9,7 @@ function TaskForm({ onSubmit, editingTask, onCancelEdit }) {
           title: "",
           description: "",
           status: "Pending",
+          due_date: todayISO,
         },
   );
 
@@ -20,11 +22,16 @@ function TaskForm({ onSubmit, editingTask, onCancelEdit }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    Promise.resolve(onSubmit(formData)).then(() => {
+    const payload = {
+      ...formData,
+      due_date: formData.due_date?.trim() ? formData.due_date : todayISO,
+    };
+    Promise.resolve(onSubmit(payload)).then(() => {
       setFormData({
         title: "",
         description: "",
         status: "Pending",
+        due_date: todayISO,
       });
     });
 
@@ -64,6 +71,13 @@ function TaskForm({ onSubmit, editingTask, onCancelEdit }) {
         <option value="Completed">Completed</option>
       </select>
 
+      <input
+        type="date"
+        name="due_date"
+        value={formData.due_date || todayISO}
+        onChange={handleChange}
+      />
+
       <div className="form-actions">
         {editingTask && (
           <button
@@ -75,6 +89,7 @@ function TaskForm({ onSubmit, editingTask, onCancelEdit }) {
                 title: "",
                 description: "",
                 status: "Pending",
+                due_date: todayISO,
               });
             }}
           >
