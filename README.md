@@ -1,18 +1,49 @@
-# React + Vite
+# Task Management Frontend (React + Vite)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Modern, responsive task management UI with:
+- Add / Edit / Delete tasks
+- Search + status filter
+- Pagination
+- Basic login/logout (frontend-only demo)
 
-Currently, two official plugins are available:
+This frontend calls the Django REST API.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Requirements
+- Node.js 18+ (recommended 20+)
 
-## React Compiler
+## Setup
+```bash
+npm install
+```
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+## Run (local dev)
+```bash
+npm run dev
+```
 
-Note: This will impact Vite dev & build performances.
+The app runs on `http://127.0.0.1:5173/`.
 
-## Expanding the ESLint configuration
+## Configure API URL
+The frontend reads the API base URL from `VITE_API_URL`.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Local
+Create a `.env` file in this folder:
+```env
+VITE_API_URL=http://127.0.0.1:8000/api
+```
+
+### Production (Render/Vercel/etc.)
+Set an environment variable:
+```env
+VITE_API_URL=https://<your-backend>.onrender.com/api
+```
+
+## Build
+```bash
+npm run build
+```
+
+## Deploy on Render (Static Site)
+- **Build Command**: `npm ci && npm run build`
+- **Publish Directory**: `dist`
+- **Environment**: set `VITE_API_URL` to your backend `/api` URL
