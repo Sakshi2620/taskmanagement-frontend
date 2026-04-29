@@ -418,6 +418,38 @@
   margin-bottom: 6px;
 }
 
+.error-message {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.toggle-mode {
+  text-align: center;
+  margin-top: 8px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: #2563eb;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.link-btn:hover {
+  color: #1d4ed8;
+}
+
 @media (max-width: 900px) {
   .dashboard {
     grid-template-columns: 1fr;

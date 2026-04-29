@@ -10,9 +10,12 @@ import {
   deleteTask as apiDeleteTask,
   getTasks,
   updateTask,
+  logout as apiLogout,
 } from "./api/tasks";
 
 const AUTH_KEY = "tm_auth_user_v1";
+const TOKEN_KEY = "auth_token"; // must match what axios interceptor reads
+
 const safeJsonParse = (raw, fallback) => {
   try {
     return raw ? JSON.parse(raw) : fallback;
@@ -22,10 +25,15 @@ const safeJsonParse = (raw, fallback) => {
 };
 
 function App() {
+  // Restore user AND verify token both exist — if token missing, force logout
   const [user, setUser] = useState(() => {
     if (typeof window === "undefined") return null;
-    return safeJsonParse(localStorage.getItem(AUTH_KEY), null);
+    const token = localStorage.getItem(TOKEN_KEY);
+    const savedUser = safeJsonParse(localStorage.getItem(AUTH_KEY), null);
+    // Only restore session if both token and user are present
+    return token && savedUser ? savedUser : null;
   });
+
   const [tasks, setTasks] = useState([]);
   const [isLoadingTasks, setIsLoadingTasks] = useState(false);
   const [tasksError, setTasksError] = useState("");
@@ -38,49 +46,32 @@ function App() {
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
-    queueMicrotask(() => {
-      if (cancelled) return;
-      setIsLoadingTasks(true);
-      setTasksError("");
-    });
+    setIsLoadingTasks(true);
+    setTasksError("");
     getTasks()
-      .then((data) => setTasks(Array.isArray(data) ? data : []))
+      .then((data) => {
+        if (!cancelled) setTasks(Array.isArray(data) ? data : []);
+      })
       .catch((err) => {
-        setTasks([]);
-        setTasksError(
-          err?.message ||
-            "Failed to load tasks. Make sure Django is running on port 8000.",
-        );
+        if (!cancelled) {
+          setTasks([]);
+          // If 401, token expired — force logout
+          if (err?.response?.status === 401) {
+            handleClearSession();
+          } else {
+            setTasksError(
+              err?.message || "Failed to load tasks. Make sure Django is running on port 8000."
+            );
+          }
+        }
       })
       .finally(() => {
-        queueMicrotask(() => {
-          if (cancelled) return;
-          setIsLoadingTasks(false);
-        });
+        if (!cancelled) setIsLoadingTasks(false);
       });
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [user]);
 
-  const onLogin = (payload) => {
-    const nextUser = { username: payload.username };
-    setUser(nextUser);
-    setTasks([]);
-    setEditingTask(null);
-    setSearch("");
-    setStatusFilter("All");
-    setPageSize(6);
-    setPage(1);
-    setTasksError("");
-    try {
-      localStorage.setItem(AUTH_KEY, JSON.stringify(nextUser));
-    } catch {
-      // ignore
-    }
-  };
-
-  const onLogout = () => {
+  const handleClearSession = () => {
     setUser(null);
     setTasks([]);
     setEditingTask(null);
@@ -89,11 +80,37 @@ function App() {
     setPageSize(6);
     setPage(1);
     setTasksError("");
+    localStorage.removeItem(AUTH_KEY);
+    localStorage.removeItem(TOKEN_KEY);
+  };
+
+  const onLogin = (payload, token) => {
+    const nextUser = {
+      id: payload.id,
+      username: payload.username,
+      email: payload.email,
+      first_name: payload.first_name,
+      last_name: payload.last_name,
+    };
+    setUser(nextUser);
+    setTasks([]);
+    setEditingTask(null);
+    setSearch("");
+    setStatusFilter("All");
+    setPageSize(6);
+    setPage(1);
+    setTasksError("");
+    localStorage.setItem(AUTH_KEY, JSON.stringify(nextUser));
+    // Token is already saved inside tasks.js login() — just ensure it's there
+  };
+
+  const onLogout = async () => {
     try {
-      localStorage.removeItem(AUTH_KEY);
+      await apiLogout();
     } catch {
       // ignore
     }
+    handleClearSession();
   };
 
   const saveTask = async (task) => {
@@ -106,6 +123,7 @@ function App() {
       setTasks((prev) => [created, ...prev]);
     }
   };
+
   const deleteTask = async (id) => {
     if (!confirm("Delete this task?")) return;
     await apiDeleteTask(id);
@@ -151,7 +169,6 @@ function App() {
             <small>Total</small>
             <h2>{tasks.length}</h2>
           </div>
-
           <div className="stat-card">
             <small>Done</small>
             <h2>{completed}</h2>
@@ -183,20 +200,11 @@ function App() {
 
           <SearchBar
             search={search}
-            setSearch={(v) => {
-              setSearch(v);
-              setPage(1);
-            }}
+            setSearch={(v) => { setSearch(v); setPage(1); }}
             statusFilter={statusFilter}
-            setStatusFilter={(v) => {
-              setStatusFilter(v);
-              setPage(1);
-            }}
+            setStatusFilter={(v) => { setStatusFilter(v); setPage(1); }}
             pageSize={pageSize}
-            setPageSize={(v) => {
-              setPageSize(v);
-              setPage(1);
-            }}
+            setPageSize={(v) => { setPageSize(v); setPage(1); }}
           />
 
           {!isLoadingTasks && !tasksError && filteredTasks.length ? (
