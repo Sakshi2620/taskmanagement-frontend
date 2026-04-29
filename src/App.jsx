@@ -47,7 +47,9 @@ const safeParse=(raw,fallback)=>{
 const [statusFilter,setStatusFilter]=useState("All")
 
 const [pageSize,setPageSize]=useState(6)
-const [page,setPage]=useState(1)
+const [darkMode,setDarkMode] = useState(
+  localStorage.getItem("theme")==="dark"
+ );
 
 
 /* ---------------- LOAD TASKS ---------------- */
@@ -288,15 +290,28 @@ const totalPages=Math.max(
   
   /* ---------- LOGIN SCREEN ---------- */
   if(!user){
-  return (
-  <Login
-  onLogin={onLogin}
-  />
-  )
-  }
+    return(
+    <Login
+    onLogin={onLogin}
+    darkMode={darkMode}
+    setDarkMode={setDarkMode}
+    />
+    )
+    }
   /* ---------- APP UI ---------- */
 return(
-  <div className="app">
+  <div
+ className="app"
+ style={{
+   background: darkMode
+     ? "#111827"
+     : "#f9fafb",
+   color: darkMode
+     ? "white"
+     : "#111827",
+   minHeight:"100vh"
+ }}
+>
   
   <div className="header">
   
