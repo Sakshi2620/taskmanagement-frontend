@@ -2,6 +2,11 @@ import axios from "axios";
 
 const API_URL = "https://taskmanagement-backend-ykcq.onrender.com/api";
 
+
+export const register = async(data)=>{
+  const res = await api.post("/auth/register/", data);
+  return res.data;
+ };
 const api = axios.create({
  baseURL: API_URL,
  headers:{
