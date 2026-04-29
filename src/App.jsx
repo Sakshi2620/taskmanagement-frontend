@@ -110,23 +110,22 @@ getTasks()
 }
 
 
-const onLogin=(payload)=>{
+const onLogin=(user,token)=>{
 
-const nextUser={
-id:payload.id,
-username:payload.username,
-email:payload.email,
-first_name:payload.first_name,
-last_name:payload.last_name
-}
-
-setUser(nextUser)
-
-localStorage.setItem(
-AUTH_KEY,
-JSON.stringify(nextUser)
-)
-}
+  if(token){
+    localStorage.setItem(
+     "auth_token",
+     token
+    );
+  }
+ 
+  localStorage.setItem(
+   AUTH_KEY,
+   JSON.stringify(user)
+  );
+ 
+  setUser(user);
+ };
 
 
 const onLogout=async()=>{
