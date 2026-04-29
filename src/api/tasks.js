@@ -1,71 +1,48 @@
 import axios from "axios";
 
-const API = axios.create({
- baseURL:"http://127.0.0.1:8000/api"
+const API_URL = "https://taskmanagement-backend-ykcq.onrender.com/api";
+
+const api = axios.create({
+ baseURL: API_URL,
+ headers:{
+   "Content-Type":"application/json"
+ }
 });
 
-API.interceptors.request.use(config=>{
+api.interceptors.request.use((config)=>{
  const token = localStorage.getItem("auth_token");
 
  if(token){
-   config.headers.Authorization=`Token ${token}`;
+   config.headers.Authorization = `Token ${token}`;
  }
 
  return config;
 });
 
-
 export const login = async(data)=>{
- const res = await API.post(
-   "/auth/login/",
-   data
- );
-
- localStorage.setItem(
-   "auth_token",
-   res.data.token
- );
-
+ const res = await api.post("/auth/login/",data);
  return res.data;
 };
-
-
-export const register=(data)=>
-API.post(
- "/auth/register/",
- data
-);
-
 
 export const logout = async()=>{
- await API.post("/auth/logout/");
- localStorage.removeItem("auth_token");
+ return await api.post("/auth/logout/");
 };
-
 
 export const getTasks = async()=>{
- const res=await API.get("/tasks/");
+ const res = await api.get("/tasks/");
  return res.data;
 };
-
 
 export const createTask = async(data)=>{
- const res=await API.post(
-  "/tasks/",
-  data
- );
+ const res = await api.post("/tasks/",data);
  return res.data;
 };
-
 
 export const updateTask = async(id,data)=>{
- const res=await API.put(
-   `/tasks/${id}/`,
-   data
- );
+ const res = await api.put(`/tasks/${id}/`,data);
  return res.data;
 };
 
-
-export const deleteTask = (id)=>
-API.delete(`/tasks/${id}/`);
+export const deleteTask = async(id)=>{
+ return await api.delete(`/tasks/${id}/`);
+};
