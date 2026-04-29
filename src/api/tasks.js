@@ -1,66 +1,71 @@
 import axios from "axios";
 
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api",
-  timeout: 15000,
+const API = axios.create({
+ baseURL:"http://127.0.0.1:8000/api"
 });
 
-// ── Attach token to every request automatically ──────────────
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("auth_token");
-  if (token) {
-    config.headers["Authorization"] = `Token ${token}`;
-  }
-  return config;
+API.interceptors.request.use(config=>{
+ const token = localStorage.getItem("auth_token");
+
+ if(token){
+   config.headers.Authorization=`Token ${token}`;
+ }
+
+ return config;
 });
 
-// ── Task endpoints ────────────────────────────────────────────
-export async function getTasks() {
-  const res = await api.get("/tasks/");
-  return res.data;
-}
 
-export async function createTask(payload) {
-  const res = await api.post("/tasks/", payload);
-  return res.data;
-}
+export const login = async(data)=>{
+ const res = await API.post(
+   "/auth/login/",
+   data
+ );
 
-export async function updateTask(id, payload) {
-  const res = await api.patch(`/tasks/${id}/`, payload);
-  return res.data;
-}
+ localStorage.setItem(
+   "auth_token",
+   res.data.token
+ );
 
-export async function deleteTask(id) {
-  await api.delete(`/tasks/${id}/`);
-}
+ return res.data;
+};
 
-// ── Auth endpoints ────────────────────────────────────────────
-export async function register(payload) {
-  const res = await api.post("/auth/register/", payload);
-  return res.data;
-}
 
-export async function login(payload) {
-  const res = await api.post("/auth/login/", payload);
-  // Save token immediately after login
-  if (res.data.token) {
-    localStorage.setItem("auth_token", res.data.token);
-    localStorage.setItem("user", JSON.stringify(res.data.user));
-  }
-  return res.data;
-}
+export const register=(data)=>
+API.post(
+ "/auth/register/",
+ data
+);
 
-export async function logout() {
-  try {
-    await api.post("/auth/logout/");
-  } finally {
-    // Always clear local storage on logout
-    localStorage.removeItem("auth_token");
-    localStorage.removeItem("user");
-  }
-}
 
-export async function getCurrentUser() {
-  const res = await api.get("/auth/me/");
-  return res.data;
-}
+export const logout = async()=>{
+ await API.post("/auth/logout/");
+ localStorage.removeItem("auth_token");
+};
+
+
+export const getTasks = async()=>{
+ const res=await API.get("/tasks/");
+ return res.data;
+};
+
+
+export const createTask = async(data)=>{
+ const res=await API.post(
+  "/tasks/",
+  data
+ );
+ return res.data;
+};
+
+
+export const updateTask = async(id,data)=>{
+ const res=await API.put(
+   `/tasks/${id}/`,
+   data
+ );
+ return res.data;
+};
+
+
+export const deleteTask = (id)=>
+API.delete(`/tasks/${id}/`);
